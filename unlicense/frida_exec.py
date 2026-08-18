@@ -157,7 +157,8 @@ def _str_to_architecture(frida_arch: str) -> Architecture:
 
 def spawn_and_instrument(
         pe_path: Path, text_section_ranges: List[MemoryRange],
-        notify_oep_reached: OepReachedCallback) -> ProcessController:
+        notify_oep_reached: OepReachedCallback,
+        anti_debug: bool = True) -> ProcessController:
     pid: int
     if pe_path.suffix == ".dll":
         # Use `rundll32` to load the DLL
@@ -176,6 +177,15 @@ def spawn_and_instrument(
                                             notify_oep_reached)
     script.on('message', on_message_callback)
     script.load()
+
+    # Load the ScyllaHide-equivalent anti-anti-debug hooks while the target is
+    # still suspended (before frida.resume), so WinLicense/Themida's first
+    # anti-debug instruction is already intercepted.
+    if anti_debug:
+        anti_debug_js = resources.open_text("unlicense.resources",
+                                            "anti_debug.js").read()
+        session.create_script(anti_debug_js).load()
+        LOG.info("Anti-debug (ScyllaHide-equivalent) hooks installed")
 
     frida_rpc = script.exports
     process_controller = FridaProcessController(pid, main_module_name, session,

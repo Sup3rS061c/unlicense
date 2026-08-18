@@ -1,0 +1,46 @@
+name: Build unlicense (anti-debug, win32)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-win32:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11 (32-bit / x86)
+        # 32-bit interpreter is REQUIRED to dump 32-bit PEs (unlicense README)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          architecture: x86
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Create venv and install dependencies
+        shell: bash
+        run: |
+          uv venv --python 3.11
+          uv pip install -e .
+          uv pip install "pyinstaller>=5.13"
+
+      - name: Smoke test (CLI imports + anti-debug resource loads)
+        shell: bash
+        run: |
+          .venv/Scripts/python -m unlicense --help
+
+      - name: Build standalone 32-bit exe (PyInstaller)
+        shell: bash
+        run: |
+          .venv/Scripts/pyinstaller unlicense.spec --noconfirm --clean
+
+      - name: Upload unlicense.exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: unlicense-win32
+          path: dist/unlicense.exe

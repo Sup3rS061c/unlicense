@@ -29,6 +29,7 @@ def run_unlicense(
     force_oep: Optional[int] = None,
     target_version: Optional[int] = None,
     timeout: int = 10,
+    anti_debug: bool = True,
 ) -> None:
     """
     Unpack executables protected with Themida/WinLicense 2.x and 3.x
@@ -82,7 +83,8 @@ def run_unlicense(
 
     # Spawn the packed executable and instrument it to find its OEP
     process_controller = frida_exec.spawn_and_instrument(
-        pe_path, text_section_ranges, notify_oep_reached)
+        pe_path, text_section_ranges, notify_oep_reached,
+        anti_debug=anti_debug)
     try:
         # Block until OEP is reached
         if not oep_reached.wait(float(timeout)):
