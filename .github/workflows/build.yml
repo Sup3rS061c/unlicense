@@ -26,7 +26,10 @@ jobs:
         shell: bash
         run: |
           uv venv --python 3.11
-          uv pip install setuptools
+          uv pip install --upgrade setuptools wheel
+          # capstone < 5.0.1 imports pkg_resources at runtime; force a version
+          # that no longer depends on it so the import chain succeeds.
+          uv pip install "capstone>=5.0.1"
           uv pip install -e .
           uv pip install "pyinstaller>=5.13"
 
