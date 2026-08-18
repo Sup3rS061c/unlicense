@@ -30,12 +30,12 @@ jobs:
           # longer exposes pkg_resources as an importable module, so we must pin
           # an older setuptools (<81) that still provides it.
           uv pip install "setuptools==70.3.0" "wheel"
-          # capstone >= 5.0.3 only ships win_amd64 wheels; 5.0.9 has NO win32
-          # wheel at all and therefore tries to build from sdist, which fails on
-          # 32-bit (x86) runners. 5.0.2 is the newest version with a prebuilt
-          # win32 wheel, so pin it and constrain -e . from upgrading to 5.0.9.
-          printf 'capstone==5.0.2\n' > constraints.txt
-          uv pip install "capstone==5.0.2"
+          # unlicense pins capstone>=4.0,<5.0, so the newest usable version is
+          # 4.0.2. 4.0.2 also ships a prebuilt win32 (x86) wheel, which avoids
+          # the from-sdist build that fails on 32-bit runners (5.0.9 has no
+          # win32 wheel at all). Pin it and constrain -e . from upgrading.
+          printf 'capstone==4.0.2\n' > constraints.txt
+          uv pip install "capstone==4.0.2"
           uv pip install -e . --constraint constraints.txt
           uv pip install "pyinstaller>=5.13"
 
